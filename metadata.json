@@ -1,0 +1,5 @@
+{
+  "name": "Diffusion Schedule Visualizer",
+  "description": "A comprehensive web tool for exploring and visualizing noise schedules for Denoising Diffusion Probabilistic Models (DDPM). Configure beta parameters, view derived values like alpha-bar and SNR, and analyze schedules through interactive charts and data tables.",
+  "requestFramePermissions": []
+}
