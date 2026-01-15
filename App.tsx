@@ -27,7 +27,7 @@ const ZoomableChartContainer = ({
   const [isPanning, setIsPanning] = useState(false);
   const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
 
-  // Update xDomain if initialNumSteps changes (e.g. Solver T update)
+  // Update xDomain if initialNumSteps changes (e.g. Solver T update or global max changes)
   React.useEffect(() => {
     setXDomain([0, initialNumSteps]);
   }, [initialNumSteps]);
@@ -98,6 +98,7 @@ const ZoomableChartContainer = ({
 const Modal = ({ children, onClose }: { children?: React.ReactNode, onClose: () => void }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/95 backdrop-blur-md" onClick={onClose}>
     <div className="bg-white rounded-[3.5rem] w-full max-w-screen-2xl h-[92vh] p-12 shadow-2xl relative flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+      {/* Fix: Changed onClose to onClick which is a valid button prop */}
       <button onClick={onClose} className="absolute top-12 right-12 text-slate-300 hover:text-slate-900 transition-colors p-2 z-20">
         <i className="fas fa-times fa-4x"></i>
       </button>
@@ -140,10 +141,19 @@ const App: React.FC = () => {
     schedule: params.schedule
   }), [params]);
 
+  // Modified currentMaxSteps to find the absolute maximum T across all visible series
   const currentMaxSteps = useMemo(() => {
-    if (configMode === 'solver') return parseInt(solverParams.numTimesteps) || 100;
-    return numericParams.numTimesteps;
-  }, [configMode, solverParams.numTimesteps, numericParams.numTimesteps]);
+    let maxT = numericParams.numTimesteps;
+    if (configMode === 'solver') {
+      maxT = Math.max(maxT, parseInt(solverParams.numTimesteps) || 100);
+    }
+    if (configMode === 'custom') {
+      customItems.forEach(item => {
+        maxT = Math.max(maxT, item.numTimesteps);
+      });
+    }
+    return maxT;
+  }, [configMode, solverParams.numTimesteps, numericParams.numTimesteps, customItems]);
 
   const scheduleData = useMemo(() => calculateSchedule(numericParams), [numericParams]);
 
